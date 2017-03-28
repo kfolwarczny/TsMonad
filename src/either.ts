@@ -1,4 +1,4 @@
-import { Monad, Functor, Eq, eq } from './monad'
+import { Eq, eq, Functor, Monad } from './monad';
 
 /**
  * @name EitherType
@@ -12,7 +12,7 @@ export enum EitherType { Left, Right }
  *     for Left and Right.
  * @see Either#
  */
-export interface EitherPatterns<L,R,T> {
+export interface EitherPatterns<L, R, T> {
     /**
      * @name left
      * @description Function to handle the Left.
@@ -29,7 +29,7 @@ export interface EitherPatterns<L,R,T> {
 }
 
 // ditto, but optional
-export interface OptionalEitherPatterns<L,R,T> {
+export interface OptionalEitherPatterns<L, R, T> {
     left?: (l: L) => T;
     right?: (r: R) => T;
 }
@@ -49,7 +49,7 @@ function exists<T>(t: T) {
  *     parameter.
  * @see Either#
  */
-export function either<L,R>(l?: L, r?: R) {
+export function either<L, R>(l?: L, r?: R) {
     if (exists(l) && exists(r)) {
         throw new TypeError('Cannot construct an Either with both a left and a right');
     }
@@ -57,10 +57,10 @@ export function either<L,R>(l?: L, r?: R) {
         throw new TypeError('Cannot construct an Either with neither a left nor a right');
     }
     if (exists(l) && !exists(r)) {
-        return Either.left<L,R>(l);
+        return Either.left<L, R>(l);
     }
     if (!exists(l) && exists(r)) {
-        return Either.right<L,R>(r);
+        return Either.right<L, R>(r);
     }
 }
 
@@ -72,106 +72,8 @@ export function either<L,R>(l?: L, r?: R) {
  *     convention, the Left constructor is used to hold an error value and
  *     the Right constructor is used to hold a correct value.
  */
-export class Either<L,R> implements Monad<R>, Functor<R>, Eq<Either<L,R>> {
+export class Either<L, R> implements Monad<R>, Functor<R>, Eq<Either<L, R>> {
 
-    /**
-     * @description Build an Either object. For internal use only.
-     * @constructor
-     * @methodOf Either#
-     * @param {EitherType} type Indicates if the Either content is a Left or a Right.
-     * @param {L} l The Left value (optional).
-     * @param {R} l The Right value (optional).
-     */
-    constructor(private type: EitherType,
-                private l?: L,
-                private r?: R) {}
-
-    /**
-     * @name left
-     * @description Helper function to build an Either with a Left.
-     * @methodOf Either#
-     * @static
-     * @param {L} l The Left value.
-     * @returns {Either<L, R>} Either object containing a Left.
-     */
-    static left<L,R>(l: L) {
-        return new Either<L,R>(EitherType.Left, l);
-    }
-
-        /**
-     * @name right
-     * @description Helper function to build an Either with a Right.
-     * @methodOf Either#
-     * @static
-     * @param {R} r The Right value.
-     * @returns {Either<L, R>} Either object containing a Right.
-     */
-    static right<L,R>(r: R) {
-        return new Either<L,R>(EitherType.Right, null, r);
-    }
-
-    /**
-     * @name unit
-     * @description Wrap a value inside an Either Right object.
-     * @methodOf Either#
-     * @public
-     * @param {T} t
-     * @returns {Either<L, R>} Either object containing a Right.
-     * @see Monad#unit
-     */
-    unit<T>(t: T) {
-        return Either.right<L,T>(t);
-    }
-
-    /**
-     * @name bind
-     * @description Apply the function passed as parameter on the object.
-     * @methodOf Either#
-     * @public
-     * @param {(r: R) => Either<L, T>} f Function applied on the Right.
-     * @returns {Either<L, T>} The result of the function f wrapped inside
-     *     an Either object.
-     * @see Monad#bind
-     */
-    bind<T>(f: (r: R) => Either<L,T>) {
-        return this.type === EitherType.Right ?
-            f(this.r) :
-            Either.left<L,T>(this.l);
-    }
-
-    /**
-     * @name of
-     * @description Alias for unit.
-     * @methodOf Either#
-     * @public
-     * @see Either#unit
-     * @see Monad#of
-     */
-    of = this.unit;
-
-    /**
-     * @name chain
-     * @description Alias for bind.
-     * @methodOf Either#
-     * @public
-     * @see Either#bind
-     * @see Monad#chain
-     */
-    chain = this.bind;
-
-    /**
-     * @name fmap
-     * @description Apply the function passed as parameter on the object.
-     * @methodOf Either#
-     * @public
-     * @param {(r: R) => T} f Function applied on the Right.
-     * @returns {Either<L, T>} The result of the function f wrapped inside
-     *     an Either object.
-     * @see Functor#fmap
-     */
-    fmap<T>(f: (r: R) => T) {
-        return this.bind(v => this.unit<T>(f(v)));
-    }
 
     /**
      * @name lift
@@ -194,6 +96,106 @@ export class Either<L,R> implements Monad<R>, Functor<R>, Eq<Either<L,R>> {
     map = this.fmap;
 
     /**
+     * @name of
+     * @description Alias for unit.
+     * @methodOf Either#
+     * @public
+     * @see Either#unit
+     * @see Monad#of
+     */
+    of = this.unit;
+
+    /**
+     * @name chain
+     * @description Alias for bind.
+     * @methodOf Either#
+     * @public
+     * @see Either#bind
+     * @see Monad#chain
+     */
+    chain = this.bind;
+
+    /**
+     * @name left
+     * @description Helper function to build an Either with a Left.
+     * @methodOf Either#
+     * @static
+     * @param {L} l The Left value.
+     * @returns {Either<L, R>} Either object containing a Left.
+     */
+    static left<L, R>(l: L) {
+        return new Either<L, R>(EitherType.Left, l);
+    }
+
+    /**
+     * @name right
+     * @description Helper function to build an Either with a Right.
+     * @methodOf Either#
+     * @static
+     * @param {R} r The Right value.
+     * @returns {Either<L, R>} Either object containing a Right.
+     */
+    static right<L, R>(r: R) {
+        return new Either<L, R>(EitherType.Right, null, r);
+    }
+
+    /**
+     * @description Build an Either object. For internal use only.
+     * @constructor
+     * @methodOf Either#
+     * @param {EitherType} type Indicates if the Either content is a Left or a Right.
+     * @param {L} l The Left value (optional).
+     * @param {R} l The Right value (optional).
+     */
+    constructor(private type: EitherType,
+                private l?: L,
+                private r?: R) {
+    }
+
+    /**
+     * @name unit
+     * @description Wrap a value inside an Either Right object.
+     * @methodOf Either#
+     * @public
+     * @param {T} t
+     * @returns {Either<L, R>} Either object containing a Right.
+     * @see Monad#unit
+     */
+    unit<T>(t: T) {
+        return Either.right<L, T>(t);
+    }
+
+    /**
+     * @name bind
+     * @description Apply the function passed as parameter on the object.
+     * @methodOf Either#
+     * @public
+     * @param {(r: R) => Either<L, T>} f Function applied on the Right.
+     * @returns {Either<L, T>} The result of the function f wrapped inside
+     *     an Either object.
+     * @see Monad#bind
+     */
+    bind<T>(f: (r: R) => Either<L, T>) {
+        return this.type === EitherType.Right ?
+            f(this.r) :
+            Either.left<L, T>(this.l);
+    }
+
+    /**
+     * @name fmap
+     * @description Apply the function passed as parameter on the object.
+     * @methodOf Either#
+     * @public
+     * @param {(r: R) => T} f Function applied on the Right.
+     * @returns {Either<L, T>} The result of the function f wrapped inside
+     *     an Either object.
+     * @see Functor#fmap
+     */
+    fmap<T>(f: (r: R) => T) {
+        return this.bind(v => this.unit<T>(f(v)));
+    }
+
+    /**
      * @name caseOf
      * @description Execute a function depending on the Either content.
      *     It allows to unwrap the object for Left or Right types.
@@ -205,7 +207,7 @@ export class Either<L,R> implements Monad<R>, Functor<R>, Eq<Either<L,R>> {
      *     EitherPatterns interface.
      * @see EitherPatterns#
      */
-    caseOf<T>(pattern: EitherPatterns<L,R,T>) {
+    caseOf<T>(pattern: EitherPatterns<L, R, T>) {
         return this.type === EitherType.Right ?
             pattern.right(this.r) :
             pattern.left(this.l);
@@ -222,7 +224,7 @@ export class Either<L,R> implements Monad<R>, Functor<R>, Eq<Either<L,R>> {
      *     false otherwise.
      * @see Eq#equals
      */
-    equals(other: Either<L,R>) {
+    equals(other: Either<L, R>) {
         return other.type === this.type &&
             ((this.type === EitherType.Left && eq(other.l, this.l)) ||
             (this.type === EitherType.Right && eq(other.r, this.r)));
@@ -240,11 +242,13 @@ export class Either<L,R> implements Monad<R>, Functor<R>, Eq<Either<L,R>> {
      * @see OptionalEitherPatterns#
      */
     do(patterns: OptionalEitherPatterns<L, R, void> = {}): Either<L, R> {
-        let noop_pattern = {
-            left: (l: L) => {},
-            right: (r: R) => {},
+        const noop_pattern = {
+            left: (l: L) => {
+            },
+            right: (r: R) => {
+            },
         };
-        let merged = Object.assign(noop_pattern, patterns);
+        const merged = Object.assign(noop_pattern, patterns);
         this.caseOf(merged);
         return this;
     }

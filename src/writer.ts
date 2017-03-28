@@ -1,4 +1,4 @@
-import { Monad, Functor, Eq, eq } from './monad'
+import { Eq, Functor, Monad } from './monad';
 
 /**
  * @name WriterPatterns
@@ -6,7 +6,7 @@ import { Monad, Functor, Eq, eq } from './monad'
  *     callback.
  * @see Writer#
  */
-export interface WriterPatterns<S,T,U> {
+export interface WriterPatterns<S, T, U> {
     /**
      * @name writer
      * @description Function to handle the Writer content.
@@ -25,7 +25,7 @@ export interface WriterPatterns<S,T,U> {
  *     and the wrapped value.
  * @see Writer#
  */
-export function writer<S,T>(story: S[], value: T) {
+export function writer<S, T>(story: S[], value: T) {
     return Writer.writer(story, value);
 }
 
@@ -35,16 +35,47 @@ export function writer<S,T>(story: S[], value: T) {
  *     values are combined into one log value that then gets attached to
  *     the result.
  */
-export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
+export class Writer<S, T> implements Monad<T>, Eq<Writer<S, T>> {
 
     /**
-     * @description Build a Writer object. For internal use only.
-     * @constructor
+     * @name of
+     * @description Alias for unit.
      * @methodOf Writer#
-     * @param {S[]} story The collection of logs.
-     * @param {T} value The object to wrap.
+     * @public
+     * @see Writer#unit
+     * @see Monad#of
      */
-    constructor(private story: S[], private value: T) {}
+    of = this.unit;
+
+    /**
+     * @name chain
+     * @description Alias for bind
+     * @methodOf Writer#
+     * @public
+     * @see Writer#unit
+     * @see Monad#of
+     */
+    chain = this.bind;
+
+    /**
+     * @name lift
+     * @description Alias for fmap
+     * @methodOf Writer#
+     * @public
+     * @see Writer#fmap
+     * @see Monad#of
+     */
+    lift = this.fmap;
+
+    /**
+     * @name map
+     * @description Alias for fmap
+     * @methodOf Writer#
+     * @public
+     * @see Writer#fmap
+     * @see Monad#of
+     */
+    map = this.fmap;
 
     /**
      * @name writer
@@ -56,7 +87,7 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
      * @returns {Writer<S, T>} A Writer object containing the collection of logs
      *     and the wrapped value.
      */
-    static writer<S,T>(story: S[], value: T) {
+    static writer<S, T>(story: S[], value: T) {
         return new Writer(story, value);
     }
 
@@ -72,6 +103,16 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
      */
     static tell<S>(s: S) {
         return new Writer([s], 0);
+    }
+
+    /**
+     * @description Build a Writer object. For internal use only.
+     * @constructor
+     * @methodOf Writer#
+     * @param {S[]} story The collection of logs.
+     * @param {T} value The object to wrap.
+     */
+    constructor(private story: S[], private value: T) {
     }
 
     /**
@@ -98,31 +139,11 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
      *     Writer object.
      * @see Monad#bind
      */
-    bind<U>(f: (t: T) => Writer<S,U>): Writer<S,U> {
-        var wu = f(this.value),
-            newStory = this.story.concat(wu.story);
+    bind<U>(f: (t: T) => Writer<S, U>): Writer<S, U> {
+        const wu       = f(this.value),
+              newStory = this.story.concat(wu.story);
         return new Writer(newStory, wu.value);
     }
-
-    /**
-     * @name of
-     * @description Alias for unit.
-     * @methodOf Writer#
-     * @public
-     * @see Writer#unit
-     * @see Monad#of
-     */
-    of = this.unit;
-
-    /**
-     * @name chain
-     * @description Alias for bind
-     * @methodOf Writer#
-     * @public
-     * @see Writer#unit
-     * @see Monad#of
-     */
-    chain = this.bind;
 
     /**
      * @name fmap
@@ -139,26 +160,6 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
     }
 
     /**
-     * @name lift
-     * @description Alias for fmap
-     * @methodOf Writer#
-     * @public
-     * @see Writer#fmap
-     * @see Monad#of
-     */
-    lift = this.fmap;
-
-    /**
-     * @name map
-     * @description Alias for fmap
-     * @methodOf Writer#
-     * @public
-     * @see Writer#fmap
-     * @see Monad#of
-     */
-    map = this.fmap;
-
-    /**
      * @name caseOf
      * @description Execute a function on the Writer content. It allows to
      *     unwrap the object.
@@ -170,7 +171,7 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
      *     WriterPatterns interface.
      * @see WriterPatterns#
      */
-    caseOf<U>(patterns: WriterPatterns<S,T,U>) {
+    caseOf<U>(patterns: WriterPatterns<S, T, U>) {
         return patterns.writer(this.story, this.value);
     }
 
@@ -185,9 +186,9 @@ export class Writer<S,T> implements Monad<T>, Eq<Writer<S,T>> {
      *     are equals, false otherwise.
      * @see Eq#equals
      */
-    equals(other: Writer<S,T>) {
-        var i: number,
-            sameStory: boolean = true;
+    equals(other: Writer<S, T>) {
+        let i: number,
+            sameStory = true;
         for (i = 0; i < this.story.length; i += 1) {
             sameStory = sameStory && this.story[i] === other.story[i];
         }

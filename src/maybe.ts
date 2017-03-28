@@ -1,4 +1,4 @@
-import { Monad, Functor, Eq, eq } from './monad'
+import { Eq, eq, Functor, Monad } from './monad';
 
 /**
  * @name MaybeType
@@ -13,7 +13,7 @@ export enum MaybeType { Nothing, Just }
  *     for Just and Nothing.
  * @see Maybe#
  */
-export interface MaybePatterns<T,U> {
+export interface MaybePatterns<T, U> {
     /**
      * @name just
      * @description Function to handle the Just.
@@ -30,7 +30,7 @@ export interface MaybePatterns<T,U> {
 }
 
 // ditto, but optional
-export interface OptionalMaybePatterns<T,U> {
+export interface OptionalMaybePatterns<T, U> {
     just?: (t: T) => U;
     nothing?: () => U;
 }
@@ -57,14 +57,44 @@ export function maybe<T>(t: T) {
 export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
 
     /**
-     * @description Build a Maybe object. For internal use only.
-     * @constructor
+     * @name of
+     * @description Alias for unit.
      * @methodOf Maybe#
-     * @param {MaybeType} type Indicates if the Maybe content is a Just or a Nothing.
-     * @param {T} value The value to wrap (optional).
+     * @public
+     * @see Maybe#unit
+     * @see Monad#of
      */
-    constructor(private type: MaybeType,
-                private value?: T) {}
+    of = this.unit;
+
+    /**
+     * @name chain
+     * @description Alias for bind.
+     * @methodOf Maybe#
+     * @public
+     * @see Maybe#unit
+     * @see Monad#of
+     */
+    chain = this.bind;
+
+    /**
+     * @name lift
+     * @description Alias for fmap.
+     * @methodOf Maybe#
+     * @public
+     * @see Maybe#fmap
+     * @see Monad#of
+     */
+    lift = this.fmap;
+
+    /**
+     * @name map
+     * @description Alias for fmap.
+     * @methodOf Maybe#
+     * @public
+     * @see Maybe#fmap
+     * @see Monad#of
+     */
+    map = this.fmap;
 
     /**
      * @name sequence
@@ -74,12 +104,12 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * @param {{[id: string]: Maybe<T>}} t The value to unwrap Maybe values from.
      * @returns {Maybe<{[id: string]: T}>} A Maybe object containing the value passed in input with fields unwrapped from Maybes.
      */
-    static sequence<T>(t: {[k: string]: Maybe<T>}): Maybe<{[k: string]: T}> {
+    static sequence<T>(t: { [k: string]: Maybe<T> }): Maybe<{ [k: string]: T }> {
         if (Object.keys(t).filter(k => t[k].type === MaybeType.Nothing).length) {
-            return Maybe.nothing<{[k: string]: T}>();
+            return Maybe.nothing<{ [k: string]: T }>();
         }
-        var result: {[k: string]: any} = {};
-        for (var k in t) {
+        const result: { [k: string]: any } = {};
+        for (const k in t) {
             if (t.hasOwnProperty(k)) {
                 result[k] = t[k].value;
             }
@@ -94,7 +124,7 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * @static
      * @see Maybe#sequence
      */
-    static all = (t: {[k: string]: Maybe<any>}) => Maybe.sequence<any>(t);
+    static all = (t: { [k: string]: Maybe<any> }) => Maybe.sequence<any>(t);
 
     /**
      * @name maybe
@@ -141,6 +171,19 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
     }
 
     /**
+     * @description Build a Maybe object. For internal use only.
+     * @constructor
+     * @methodOf Maybe#
+     * @param {MaybeType} type Indicates if the Maybe content is a Just or a Nothing.
+     * @param {T} value The value to wrap (optional).
+     */
+    constructor(private type: MaybeType,
+                private value?: T) {
+    }
+
+
+
+    /**
      * @name unit
      * @description Wrap an object inside a Maybe.
      * @public
@@ -170,26 +213,6 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
     }
 
     /**
-     * @name of
-     * @description Alias for unit.
-     * @methodOf Maybe#
-     * @public
-     * @see Maybe#unit
-     * @see Monad#of
-     */
-    of = this.unit;
-
-    /**
-     * @name chain
-     * @description Alias for bind.
-     * @methodOf Maybe#
-     * @public
-     * @see Maybe#unit
-     * @see Monad#of
-     */
-    chain = this.bind;
-
-    /**
      * @name fmap
      * @description Apply the function passed as parameter on the object.
      * @methodOf Maybe#
@@ -202,26 +225,6 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
     fmap<U>(f: (t: T) => U) {
         return this.bind(v => this.unit<U>(f(v)));
     }
-
-    /**
-     * @name lift
-     * @description Alias for fmap.
-     * @methodOf Maybe#
-     * @public
-     * @see Maybe#fmap
-     * @see Monad#of
-     */
-    lift = this.fmap;
-
-    /**
-     * @name map
-     * @description Alias for fmap.
-     * @methodOf Maybe#
-     * @public
-     * @see Maybe#fmap
-     * @see Monad#of
-     */
-    map = this.fmap;
 
     /**
      * @name caseOf
@@ -250,7 +253,7 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * @return {Maybe<T>}
      */
     defaulting(defaultValue: T) {
-        return Maybe.just(this.valueOr(defaultValue))
+        return Maybe.just(this.valueOr(defaultValue));
     }
 
     /**
@@ -279,7 +282,7 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * Separate U type to allow Maybe.nothing().valueOr() to match
      * without explicitly typing Maybe.nothing.
      */
-    valueOr<U extends T>(defaultValue: U): T|U {
+    valueOr<U extends T>(defaultValue: U): T | U {
         return this.valueOrCompute(() => defaultValue);
     }
 
@@ -294,7 +297,7 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * Separate U type to allow Maybe.nothing().valueOrCompute() to match
      * without explicitly typing Maybe.nothing.
      */
-    valueOrCompute<U extends T>(defaultValueFunction: () => U): T|U {
+    valueOrCompute<U extends T>(defaultValueFunction: () => U): T | U {
         return this.type === MaybeType.Just ? this.value : defaultValueFunction();
     }
 
@@ -325,11 +328,13 @@ export class Maybe<T> implements Monad<T>, Functor<T>, Eq<Maybe<T>> {
      * @see OptionalMaybePatterns#
      */
     do(patterns: OptionalMaybePatterns<T, void> = {}): Maybe<T> {
-        let noop_pattern = {
-            just: (t: T) => {},
-            nothing: () => {},
+        const noop_pattern = {
+            just: (t: T) => {
+            },
+            nothing: () => {
+            },
         };
-        let merged = Object.assign(noop_pattern, patterns);
+        const merged = Object.assign(noop_pattern, patterns);
         this.caseOf(merged);
         return this;
     }

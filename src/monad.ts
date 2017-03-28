@@ -1,4 +1,3 @@
-
 /**
  * @name eq
  * @description Compare two objects :
@@ -11,7 +10,7 @@
  *     In case 2, true if each elements are equals, false otherwise.
  */
 export function eq(a: any, b: any) {
-    var idx = 0;
+    let idx = 0;
     if (a === b) {
         return true;
     }
