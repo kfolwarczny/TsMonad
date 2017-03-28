@@ -3,7 +3,6 @@
   "version": "0.7.0",
   "description": "TsMonad - fun-size monads library for TypeScript",
   "main": "./dist/tsmonad.js",
-  "typings": "./lib/src/index",
   "files": [
     "dist",
     "lib/src/*.d.ts",
@@ -19,6 +18,7 @@
     "prepublish": "npm run build",
     "test": "mocha lib/test"
   },
+  "typings": "dist/tsmonad.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/cbowdon/TsMonad.git"
